@@ -7,16 +7,34 @@ using UnityEngine;
 
 public class ImageLoader : MonoBehaviour
 {
-    public string url = "https://i.pinimg.com/originals/9e/1d/d6/9e1dd6458c89b03c506b384f537423d9.jpg";
+    public string url;
     public Renderer thisRenderer;
 
     // automatically called when game started
     void Start()
     {
-        StartCoroutine(LoadFromLikeCoroutine()); // execute the section independently
+        //StartCoroutine(LoadFromLikeCoroutine()); // execute the section independently
 
         // the following will be called even before the load finished
         thisRenderer.material.color = Color.red;
+
+        
+    }
+
+    //스트리밍 시작 
+    public void StartStreaming()
+    {
+        string ip = GameManager.instance.Razig_IP.text;
+
+        url = "http://" + ip + ":8091/?action=snapshot";
+
+        StartCoroutine(LoadFromLikeCoroutine());
+    }
+
+    //스트리밍 정지 
+    public void StopStreaming()
+    {
+        StopCoroutine(LoadFromLikeCoroutine());
     }
 
     // this section will be run independently

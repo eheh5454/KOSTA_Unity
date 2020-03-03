@@ -10,18 +10,34 @@ using System.Text;
 
 public class GameManager : MonoBehaviour
 {
-
+    public static GameManager instance;    
+    
+    //온습도 텍스트 
     public TMP_Text text_temp;
-    public TMP_Text text_hum;    
+    public TMP_Text text_hum;
+
+    //라지그 IP PORT 정보 
+    public TMP_InputField Razig_IP;
+
+    public string Razig_Move_PORT = "9001";
+    public string Razig_TH_PORT = "9002";
 
     //udp서버를 실행할 쓰레드 
     Thread udp_thread;
 
-    string MyPort = "9000";
+    string MyPort = "9003";
     string MyIP;
 
+    public bool connect = false;
+
+    //받아온 온습도를 받아서 텍스트를 업데이트할 큐 
     Queue<string> temp_q;
     Queue<string> hum_q;
+
+    private void Awake()
+    {
+        instance = this;
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -51,23 +67,21 @@ public class GameManager : MonoBehaviour
         udp_thread.Start();
     }
 
-    //
+    //주기적을 큐에서 온,습도 정보를 가져와 텍스트 업데이트 
     IEnumerator Update_Temp_Hum()
     {
         while(true)
         {
             //0.5초 주기로 탐색
             yield return new WaitForSeconds(0.5f);
+            if (!connect)
+                continue;
             if (temp_q.Count > 0)
                 text_temp.text = temp_q.Dequeue();
             if (hum_q.Count > 0)
-                text_hum.text = hum_q.Dequeue();
-
-            Debug.Log(text_temp.text);
-        }
+                text_hum.text = hum_q.Dequeue();            
+        }     
         
-        
-
     }
 
     //쓰레드 함수 - UDP서버 열기 
@@ -76,7 +90,7 @@ public class GameManager : MonoBehaviour
         //udp소켓 생성 
         Socket udp_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         //EndPoint 설정(IP와 Port)
-        IPEndPoint ep = new IPEndPoint(IPAddress.Any, 9000);
+        IPEndPoint ep = new IPEndPoint(IPAddress.Any,int.Parse(MyPort));
 
         //소켓 바인드 
         udp_socket.Bind(ep);
@@ -111,16 +125,39 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    //라지그에 내 IP와 포트번호 전송하기 
     public void Connect()
     {
+        connect = true;
+        Send("con" + MyIP + MyPort, Razig_TH_PORT);        
+        Debug.Log("connect");
+    }
+
+    //자율주행 모드로 설정 
+    public void SendAuto()
+    {
+        Send("auto", Razig_Move_PORT);
+    }
+
+    //수동주행 모드로 설정 
+    public void SendPassive()
+    {
+        Send("passive", Razig_Move_PORT);
+    }
+
+    //UDP로 메시지 전송 
+    void Send(string cmd, string port)
+    {
+        if (!connect)
+            return;
         //소켓 생성 
         Socket sock_local = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-        //메시지를 전송할 타겟 EndPoint
-        EndPoint epUDP = new IPEndPoint(IPAddress.Parse("192.168.0.119"), 9001);
+        //라지그 EndPoint 
+        EndPoint epUDP = new IPEndPoint(IPAddress.Parse(Razig_IP.text), int.Parse(port));
 
-        //지정한 EndPoint로 메시지 전송(문자열->byte형식으로 인코딩)
-        sock_local.SendTo(Encoding.Default.GetBytes("con" + MyIP + MyPort), epUDP);
+        //라지그에 내 IP,PORT번호 전송 
+        sock_local.SendTo(Encoding.Default.GetBytes(cmd), epUDP);
     }
 
     // Update is called once per frame

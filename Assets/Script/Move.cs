@@ -19,33 +19,25 @@ public enum DIR
 public class Move : MonoBehaviour
 {
     public DIR dir;    
-    public TMP_InputField IP_field;
-    public TMP_InputField PORT_field;    
-    
+    TMP_InputField IP_field;        
 
     // Start is called before the first frame update
     void Start()
     {
-        IP_field = GameObject.Find("Field_IP").GetComponent<TMP_InputField>();        
-        PORT_field = GameObject.Find("Field_PORT").GetComponent<TMP_InputField>();
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        IP_field = GameObject.Find("Field_IP").GetComponent<TMP_InputField>();               
     }
 
     public void Send_Move()
     {
-        Debug.Log(IP_field.text);
+        if (GameManager.instance.connect == false)
+            return;
+        string port = GameManager.instance.Razig_Move_PORT;
 
-        Debug.Log(PORT_field.text);
+        Debug.Log(IP_field.text);
 
         Socket sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-        EndPoint ep = new IPEndPoint(IPAddress.Parse(IP_field.text.ToString()), int.Parse(PORT_field.text));
+        EndPoint ep = new IPEndPoint(IPAddress.Parse(IP_field.text.ToString()), int.Parse(port));
 
         sock.SendTo(Encoding.Default.GetBytes(dir.ToString()), ep);
     }
