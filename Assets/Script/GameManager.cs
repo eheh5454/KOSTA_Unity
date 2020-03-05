@@ -6,15 +6,15 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Text;
-
+using System.Net.NetworkInformation;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance;    
     
     //온습도 텍스트 
-    public TMP_Text text_temp;
-    public TMP_Text text_hum;
+    //public TMP_Text text_temp;
+    //public TMP_Text text_hum;
 
     //라지그 IP PORT 정보 
     public TMP_InputField Razig_IP;
@@ -51,20 +51,20 @@ public class GameManager : MonoBehaviour
             {
                 localIP = ip.ToString();
                 MyIP = localIP;
+                Debug.Log(MyIP);
             }
-
         }
 
         //온도, 습도 큐 초기화 
-        temp_q = new Queue<string>();
-        hum_q = new Queue<string>();
+        //temp_q = new Queue<string>();
+        //hum_q = new Queue<string>();
 
         //온,습도 업데이트하는 코루틴 시작 
-        StartCoroutine(Update_Temp_Hum());
+        //StartCoroutine(Update_Temp_Hum());
 
         //서버 쓰레드 시작 
-        udp_thread = new Thread(UDP_Server);
-        udp_thread.Start();
+        //udp_thread = new Thread(UDP_Server);
+        //udp_thread.Start();
     }
 
     //주기적을 큐에서 온,습도 정보를 가져와 텍스트 업데이트 
@@ -73,13 +73,13 @@ public class GameManager : MonoBehaviour
         while(true)
         {
             //0.5초 주기로 탐색
-            yield return new WaitForSeconds(0.5f);
-            if (!connect)
-                continue;
-            if (temp_q.Count > 0)
-                text_temp.text = temp_q.Dequeue();
-            if (hum_q.Count > 0)
-                text_hum.text = hum_q.Dequeue();            
+            //yield return new WaitForSeconds(0.5f);
+            //if (!connect)
+            //    continue;
+            //if (temp_q.Count > 0)
+            //    text_temp.text = temp_q.Dequeue();
+            //if (hum_q.Count > 0)
+            //    text_hum.text = hum_q.Dequeue();            
         }     
         
     }
@@ -109,11 +109,12 @@ public class GameManager : MonoBehaviour
             if (recv > 0)
             {
                 string dataFromClient = Encoding.Default.GetString(buff, 0, recv);
+                Debug.Log(dataFromClient);
 
                 if (dataFromClient.Substring(0, 2) == "TS")
                 {
                     string temp_s = dataFromClient.Substring(2, 5);
-                    string hum_s = dataFromClient.Substring(7, 6);
+                    string hum_s = dataFromClient.Substring(7, 5);                    
                                         
                     temp_q.Enqueue(temp_s);
                     hum_q.Enqueue(hum_s);
@@ -129,7 +130,7 @@ public class GameManager : MonoBehaviour
     public void Connect()
     {
         connect = true;
-        Send("con" + MyIP + MyPort, Razig_TH_PORT);        
+        Send(MyIP + ":"+ MyPort, Razig_TH_PORT);        
         Debug.Log("connect");
     }
 

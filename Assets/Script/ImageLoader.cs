@@ -1,9 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 public class ImageLoader : MonoBehaviour
 {
@@ -43,11 +40,11 @@ public class ImageLoader : MonoBehaviour
         while (true)
         {
             yield return new WaitForSeconds(0.1f);
-            Debug.Log("Loading ....");
+            //Debug.Log("Loading ....");
             WWW wwwLoader = new WWW(url);   // create WWW object pointing to the url
             yield return wwwLoader;         // start loading whatever in that url ( delay happens here )
 
-            Debug.Log("Loaded");
+            //Debug.Log("Loaded");
             thisRenderer.material.color = Color.white;              // set white
             thisRenderer.material.mainTexture = wwwLoader.texture;  // set loaded image
         }
